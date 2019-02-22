@@ -4,7 +4,7 @@
 #include "../Includes/ultjb_last_request"
 #include "../Includes/ultjb_weapon_selection"
 #include "../../../Libraries/ParticleManager/particle_manager"
-#include "../../../Plugins/StoreItems/StoreItemsAPI.inc"
+#include "../../../Plugins/StoreItems/store_items.inc"
 
 #pragma semicolon 1
 

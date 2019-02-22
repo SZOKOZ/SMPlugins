@@ -1,12 +1,12 @@
 #include <sourcemod>
 #include <sdktools_entinput>
-//#include <sdktools_variant_t>
+#include <sdktools_variant_t>
 #include <sdktools_functions>
 #include <sdkhooks>
 #include "../../../Libraries/Store/store"
 #include "../../../Plugins/HidePlayers/hide_players"
 //#include <hls_color_chat>
-#include "../StoreItemsApi.inc"
+#include "../store_items.inc"
 
 #pragma semicolon 1
 

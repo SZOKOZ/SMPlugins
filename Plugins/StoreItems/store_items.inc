@@ -37,8 +37,8 @@ public __pl_StoreItemsApi_SetNTVOptional()
 
 public SharedPlugin:__pl_StoreItemsApi =
 {
-	name = "StoreItemsApi",
-	file = "StoreItemsApi.smx",
+	name = "store_items",
+	file = "API_StoreItems.smx",
 	#if defined REQUIRE_PLUGIN
 	required = 1,
 	#else
