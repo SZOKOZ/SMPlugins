@@ -4,6 +4,7 @@
 #include "../Includes/ultjb_last_request"
 #include "../Includes/ultjb_weapon_selection"
 #include "../../../Libraries/ParticleManager/particle_manager"
+#include "../../../Plugins/StoreItems/StoreItemsAPI.inc"
 
 #pragma semicolon 1
 
@@ -50,6 +51,7 @@ public OnLastRequestStart(iClient)
 	SDKHook(iClient, SDKHook_PostThinkPost, OnPostThinkPost);
 	SetEntityRenderMode(iClient, RENDER_NONE);
 	PM_StopEntityEffects(iClient);
+	UnequipAllItemsByType(iClient, ITEM_EQUIPMENT);
 	HookGuards();
 	PrepareGuards();
 	StartTimer_EnableRadar();
