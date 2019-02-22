@@ -56,7 +56,7 @@ public OnPluginStart()
 		g_aEquipmentIDs[i] = CreateArray();
 	
 	HookEvent("player_death", Event_PlayerDeath_Post, EventHookMode_Post);
-	RegisterStoreItemType(ITEM_EQUIPMENT, _, RemoveEquipment);
+	RegisterStoreItemType(ITEM_EQUIPMENT, _, StoreItems_RemoveEquipment);
 }
 
 public OnMapStart()
@@ -78,7 +78,12 @@ public Store_OnItemsReady()
 	}
 }
 
-public RemoveEquipment(iClient, bool:bKill)
+public StoreItems_RemoveEquipment(iClient)
+{
+	RemoveEquipment(iClient);
+}
+
+RemoveEquipment(iClient, bool:bKill=true)
 {
 	decl iEnt;
 	for(new i=0; i<sizeof(g_iEquipmentRefs[]); i++)
