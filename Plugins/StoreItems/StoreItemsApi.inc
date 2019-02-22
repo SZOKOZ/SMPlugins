@@ -16,8 +16,8 @@ enum ItemType
 	ITEM_PLAYERTRAILS
 }
 
-native RegisterStoreItemType(ItemType:item, Function:equip, Function:unequip);
-native RegisterStoreItemTypeByName(String:item[], Function:equip, Function:unequip);
+native RegisterStoreItemType(ItemType:item, Function:equip=INVALID_FUNCTION, Function:unequip=INVALID_FUNCTION);
+native RegisterStoreItemTypeByName(String:item[], Function:equip=INVALID_FUNCTION, Function:unequip=INVALID_FUNCTION);
 native UnequipAllItems(client);
 native UnequipAllItemsByType(client, ItemType:item);
 native UnequipAllItemsByName(client, String:item[]);
