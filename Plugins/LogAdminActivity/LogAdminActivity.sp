@@ -5,11 +5,12 @@
 #include "../../Libraries/DatabaseUsers/database_users"
 #include "../../Libraries/DatabaseMapSessions/database_map_sessions"
 #include "../../Libraries/DemoSessions/demo_sessions"
+#include "../../Libraries/Admins/admins"
 
 #pragma semicolon 1
 
 new const String:PLUGIN_NAME[] = "Log admin activity";
-new const String:PLUGIN_VERSION[] = "1.6";
+new const String:PLUGIN_VERSION[] = "1.10";
 
 public Plugin:myinfo =
 {
@@ -70,6 +71,8 @@ bool:Query_CreateAdminActivityTable()
 		demo_tick_sent		INT UNSIGNED		NOT NULL,\
 		client_user_id		INT UNSIGNED		NOT NULL,\
 		target_user_id		INT UNSIGNED		NOT NULL,\
+		client_admin_level	SMALLINT UNSIGNED	NOT NULL,\
+		target_admin_level	SMALLINT UNSIGNED	NOT NULL,\
 		is_client_server	BIT( 1 )			NOT NULL,\
 		is_target_bot		BIT( 1 )			NOT NULL,\
 		command_text		VARCHAR( 45 )		NOT NULL,\
@@ -154,11 +157,16 @@ public Action:OnLogAction(Handle:hSource, Identity:ident, iClient, iTarget, cons
 	}
 	
 	// Get client information.
-	new iClientUserID, bool:bClientIsServer; // A client user_id of 0 is either unknown or the server.
+	new iClientUserID, iClientAdminLevel, bool:bClientIsServer; // A client user_id of 0 is either unknown or the server.
 	if(1 <= iClient <= MaxClients)
+	{
 		iClientUserID = DBUsers_GetUserID(iClient);
+		iClientAdminLevel = _:GetAdminsLevel(iClient);
+	}
 	else if(iClient == 0)
+	{
 		bClientIsServer = true;
+	}
 	
 	// Don't "changed cvar" commands sent from the server to prevent log spam.
 	if(bClientIsServer)
@@ -168,20 +176,25 @@ public Action:OnLogAction(Handle:hSource, Identity:ident, iClient, iTarget, cons
 	}
 	
 	// Get target information.
-	new iTargetUserID, bool:bTargetIsBot; // A target user_id of 0 is either unknown or a bot.
+	new iTargetUserID, iTargetAdminLevel, bool:bTargetIsBot; // A target user_id of 0 is either unknown or a bot.
 	if(1 <= iTarget <= MaxClients)
 	{
 		if(IsFakeClient(iTarget))
+		{
 			bTargetIsBot = true;
+		}
 		else
+		{
 			iTargetUserID = DBUsers_GetUserID(iTarget);
+			iTargetAdminLevel = _:GetAdminsLevel(iTarget);
+		}
 	}
 	
-	LogCommandToDatabase(iClientUserID, bClientIsServer, iTargetUserID, bTargetIsBot, szCommandText, szCommandInfo);
+	LogCommandToDatabase(iClientUserID, iClientAdminLevel, bClientIsServer, iTargetUserID, iTargetAdminLevel, bTargetIsBot, szCommandText, szCommandInfo);
 	SendCommandToSourceTV(iClient, iTarget, szCommandText, szCommandInfo);
 }
 
-LogCommandToDatabase(iClientUserID, bool:bClientIsServer, iTargetUserID, bool:bTargetIsBot, const String:szCommandText[], const String:szCommandInfo[])
+LogCommandToDatabase(iClientUserID, iClientAdminLevel, bool:bClientIsServer, iTargetUserID, iTargetAdminLevel, bool:bTargetIsBot, const String:szCommandText[], const String:szCommandInfo[])
 {
 	static String:szCommandTextSafe[COMMAND_TEXT_LEN*2+1];
 	static String:szCommandInfoSafe[COMMAND_INFO_LEN*2+1];
@@ -194,10 +207,19 @@ LogCommandToDatabase(iClientUserID, bool:bClientIsServer, iTargetUserID, bool:bT
 	
 	DB_TQuery(g_szDatabaseConfigName, _, DBPrio_Low, _, "\
 		INSERT INTO gs_admin_activity \
-		(server_id, map_sess_id, demo_sess_id, demo_tick_sent, client_user_id, target_user_id, is_client_server, is_target_bot, command_text, command_info, activity_utime) \
+		(server_id, map_sess_id, demo_sess_id, demo_tick_sent, client_user_id, target_user_id, client_admin_level, target_admin_level, is_client_server, is_target_bot, command_text, command_info, activity_utime) \
 		VALUES \
-		(%i, %i, %i, %i, %i, %i, %i, %i, '%s', '%s', UNIX_TIMESTAMP())",
-		DBServers_GetServerID(), DBMapSessions_GetSessionID(), DemoSessions_GetID(), DemoSessions_GetCurrentTick(), iClientUserID, iTargetUserID, bClientIsServer, bTargetIsBot, szCommandTextSafe, szCommandInfoSafe);
+		(%i, %i, %i, %i, %i, %i, %i, %i, %i, %i, '%s', '%s', UNIX_TIMESTAMP())",
+		DBServers_GetServerID(), DBMapSessions_GetSessionID(), DemoSessions_GetID(), DemoSessions_GetCurrentTick(), iClientUserID, iTargetUserID, iClientAdminLevel, iTargetAdminLevel, bClientIsServer, bTargetIsBot, szCommandTextSafe, szCommandInfoSafe);
+}
+
+AdminLevel:GetAdminsLevel(iClient)
+{
+	new AdminLevel:iLevel = Admins_GetLevel(iClient);
+	if(iLevel < AdminLevel_None)
+		iLevel = AdminLevel_None;
+	
+	return iLevel;
 }
 
 SendCommandToSourceTV(iClient, iTarget, const String:szCommandText[], const String:szCommandInfo[])
